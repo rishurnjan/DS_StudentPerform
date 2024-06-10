@@ -12,7 +12,7 @@ from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
 from src.exception import CustomException
 from src.logger import logging
-
+from src.utils import save_object
 @dataclass
 class DataTransformationConfig:
     preprocessor_obj_file= os.path.join('artifacts','preprocessor.pkl')
@@ -39,8 +39,8 @@ class DataTransformation:
             cat_pipeline=Pipeline(
                 steps=[ 
                     ("imputer",SimpleImputer(strategy='most_frequent')),
-                    ("one_hot_encoder",OneHotEncoder())
-                    ("scaler",StandardScaler())
+                    ("one_hot_encoder",OneHotEncoder()),
+                    ("scaler",StandardScaler()),
                 ]
             )
             
@@ -48,8 +48,8 @@ class DataTransformation:
 
             preprocessor=ColumnTransformer(
                  [
-                     ("numerical_pipeline",num_pipeline,numerical_columns)
-                     ("categorical_pipeline",cat_pipeline,categorical_columns)
+                     ("numerical_pipeline",num_pipeline,numerical_columns),
+                     ("categorical_pipeline",cat_pipeline,categorical_columns),
                  ]
             )
         except Exception as e:
@@ -58,7 +58,7 @@ class DataTransformation:
     def initiate_data_transformation(self,train_path,test_path):
         try:
             train_df=pd.read_csv(train_path)
-            test_df=pd.read_csv(test_df)
+            test_df=pd.read_csv(test_path)
             logging.info("read the train and test data")
 
             preprocessing_obj=self.get_data_transformer_object()
@@ -70,6 +70,11 @@ class DataTransformation:
 
             input_test_df= test_df.drop(columns=[target_column])
             target_test_df=test_df[target_column]
+
+            logging.info(
+                f"Applying preprocessing object on training dataframe and testing dataframe."
+            )
+
 
             input_train_arr=preprocessing_obj.fit_transform(input_train_df)
             input_test_arr=preprocessing_obj.transform(input_test_df)
@@ -89,6 +94,6 @@ class DataTransformation:
                 self.data_transformation_config.preprocessor_obj_file,
             )
 
-        except:
-            pass
+        except Exception as e:
+            raise CustomException(e,sys)
         
