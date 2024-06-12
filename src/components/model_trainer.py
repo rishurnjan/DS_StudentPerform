@@ -11,7 +11,7 @@ from sklearn.tree import DecisionTreeRegressor
 from xgboost import XGBRegressor 
 from src.exception import CustomException
 from src.logger import logging
-from src.utils import save_object
+from src.utils import save_object, evaluate_models
 
 @dataclass
 class ModelTrainerConfig:
@@ -21,7 +21,7 @@ class ModelTrainer:
     def __init__(self):
         self.model_trainer= ModelTrainerConfig()
 
-    def initiate_model_trainer(train_array,test_array,preprocessor_path):
+    def initiate_model_trainer(self,train_array,test_array):
         try:
             logging.info("Spliting train and test data")
             X_train=train_array[:,:-1]
@@ -41,7 +41,7 @@ class ModelTrainer:
             }
 
             model_report:dict=evaluate_models(X_train=X_train,y_train=y_train,X_test=X_test,y_test=y_test,
-                                             models=models,param=params)
+                                             models=model)
             
             best_model_score=max(sorted(model_report.values()))
 
@@ -55,7 +55,7 @@ class ModelTrainer:
             logging.info(f"Best found model on both training and testing dataset")
             
             save_object(
-                file_path=self.model_trainer_config.trained_model_file_path,
+                file_path=self.model_trainer.trained_model_file_path,
                 obj=best_model
 
             )
